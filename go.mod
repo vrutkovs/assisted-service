@@ -53,7 +53,7 @@ require (
 	github.com/ory/dockertest/v3 v3.6.3
 	github.com/ovirt/go-ovirt-client v0.7.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/pelletier/go-toml v1.8.1
+	github.com/pelletier/go-toml v1.9.5
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.49.0
 	github.com/prometheus/client_golang v1.11.0
