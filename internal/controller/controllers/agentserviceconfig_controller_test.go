@@ -12,6 +12,7 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	aiv1beta1 "github.com/openshift/assisted-service/api/v1beta1"
 	"github.com/openshift/assisted-service/internal/common"
+	"github.com/openshift/assisted-service/internal/imageservice"
 	"github.com/openshift/assisted-service/internal/versions"
 	"github.com/openshift/assisted-service/models"
 	conditionsv1 "github.com/openshift/custom-resource-status/conditions/v1"
@@ -431,6 +432,17 @@ var _ = Describe("newImageServiceRoute", func() {
 
 			AssertReconcileSuccess(ctx, log, ascr.Client, asc, ascr.newImageServiceRoute)
 			Expect(ascr.Client.Get(ctx, types.NamespacedName{Name: imageServiceName, Namespace: testNamespace}, found)).To(Succeed())
+		})
+
+		It("should create new insecute route for ipxe", func() {
+			routeName := fmt.Sprintf("%s-ipxe", imageServiceName)
+			found := &routev1.Route{}
+			Expect(ascr.Client.Get(ctx, types.NamespacedName{Name: routeName, Namespace: testNamespace}, found)).ToNot(Succeed())
+
+			AssertReconcileSuccess(ctx, log, ascr.Client, asc, ascr.newInsecureIPXERoute)
+			Expect(ascr.Client.Get(ctx, types.NamespacedName{Name: routeName, Namespace: testNamespace}, found)).To(Succeed())
+			Expect(found.Spec.TLS).To(Equal(&routev1.TLSConfig{InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow}))
+			Expect(found.Spec.Path).To(Equal(imageservice.BootArtifactsPath))
 		})
 	})
 

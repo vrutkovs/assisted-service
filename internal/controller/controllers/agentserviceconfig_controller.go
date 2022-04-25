@@ -29,6 +29,7 @@ import (
 	aiv1beta1 "github.com/openshift/assisted-service/api/v1beta1"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/gencrypto"
+	"github.com/openshift/assisted-service/internal/imageservice"
 	"github.com/openshift/assisted-service/internal/versions"
 	"github.com/openshift/assisted-service/models"
 	logutil "github.com/openshift/assisted-service/pkg/log"
@@ -220,6 +221,7 @@ func (r *AgentServiceConfigReconciler) Reconcile(origCtx context.Context, req ct
 		{"AgentService", aiv1beta1.ReasonAgentServiceFailure, r.newAgentService},
 		{"ServiceMonitor", aiv1beta1.ReasonAgentServiceMonitorFailure, r.newServiceMonitor},
 		{"ImageServiceRoute", aiv1beta1.ReasonImageHandlerRouteFailure, r.newImageServiceRoute},
+		{"IPXERoute", aiv1beta1.ReasonImageHandlerRouteFailure, r.newInsecureIPXERoute},
 		{"AgentRoute", aiv1beta1.ReasonAgentRouteFailure, r.newAgentRoute},
 		{"AgentLocalAuthSecret", aiv1beta1.ReasonAgentLocalAuthSecretFailure, r.newAgentLocalAuthSecret},
 		{"DatabaseSecret", aiv1beta1.ReasonPostgresSecretFailure, r.newPostgresSecret},
@@ -638,6 +640,47 @@ func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context,
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
 		route.Spec.TLS = routeSpec.TLS
+		return nil
+	}
+
+	return route, mutateFn, nil
+}
+
+func (r *AgentServiceConfigReconciler) newInsecureIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
+	weight := int32(100)
+	route := &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-ipxe", imageServiceName),
+			Namespace: r.Namespace,
+		},
+	}
+	routeSpec := routev1.RouteSpec{
+		Path: imageservice.BootArtifactsPath,
+		To: routev1.RouteTargetReference{
+			Kind:   "Service",
+			Name:   imageServiceName,
+			Weight: &weight,
+		},
+		Port: &routev1.RoutePort{
+			TargetPort: intstr.FromString(imageServiceName),
+		},
+		WildcardPolicy: routev1.WildcardPolicyNone,
+		TLS:            &routev1.TLSConfig{InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow},
+	}
+
+	mutateFn := func() error {
+		if err := controllerutil.SetControllerReference(instance, route, r.Scheme); err != nil {
+			return err
+		}
+		// Only update what is specified above in routeSpec.
+		// If we update the entire route.Spec with
+		// route.Spec = routeSpec
+		// it would overwrite any existing values for route.Spec.Host
+		route.Spec.To = routeSpec.To
+		route.Spec.Port = routeSpec.Port
+		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
+		route.Spec.TLS = routeSpec.TLS
+		route.Spec.Path = routeSpec.Path
 		return nil
 	}
 
