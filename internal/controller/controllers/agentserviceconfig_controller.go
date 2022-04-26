@@ -223,8 +223,9 @@ func (r *AgentServiceConfigReconciler) Reconcile(origCtx context.Context, req ct
 		{"AgentService", aiv1beta1.ReasonAgentServiceFailure, r.newAgentService},
 		{"ServiceMonitor", aiv1beta1.ReasonAgentServiceMonitorFailure, r.newServiceMonitor},
 		{"ImageServiceRoute", aiv1beta1.ReasonImageHandlerRouteFailure, r.newImageServiceRoute},
-		{"IPXERoute", aiv1beta1.ReasonImageHandlerRouteFailure, r.newInsecureIPXERoute},
+		{"ImageServiceIPXERoute", aiv1beta1.ReasonImageHandlerRouteFailure, r.newImageServiceIPXERoute},
 		{"AgentRoute", aiv1beta1.ReasonAgentRouteFailure, r.newAgentRoute},
+		{"AgentIPXERoute", aiv1beta1.ReasonAgentRouteFailure, r.newAgentIPXERoute},
 		{"AgentLocalAuthSecret", aiv1beta1.ReasonAgentLocalAuthSecretFailure, r.newAgentLocalAuthSecret},
 		{"DatabaseSecret", aiv1beta1.ReasonPostgresSecretFailure, r.newPostgresSecret},
 		{"ImageServiceServiceAccount", aiv1beta1.ReasonImageHandlerServiceAccountFailure, r.newImageServiceServiceAccount},
@@ -619,6 +620,48 @@ func (r *AgentServiceConfigReconciler) newAgentRoute(ctx context.Context, log lo
 	return route, mutateFn, nil
 }
 
+func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
+	weight := int32(100)
+	route := &routev1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-ipxe", serviceName),
+			Namespace: r.Namespace,
+		},
+	}
+	routeSpec := routev1.RouteSpec{
+		To: routev1.RouteTargetReference{
+			Kind:   "Service",
+			Name:   serviceName,
+			Weight: &weight,
+		},
+		Port: &routev1.RoutePort{
+			TargetPort: intstr.FromString(fmt.Sprintf("%s-http", serviceName)),
+		},
+		WildcardPolicy: routev1.WildcardPolicyNone,
+		TLS: &routev1.TLSConfig{
+			Termination:                   routev1.TLSTerminationType(routev1.InsecureEdgeTerminationPolicyNone),
+			InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow,
+		},
+	}
+
+	mutateFn := func() error {
+		if err := controllerutil.SetControllerReference(instance, route, r.Scheme); err != nil {
+			return err
+		}
+		// Only update what is specified above in routeSpec.
+		// If we update the entire route.Spec with
+		// route.Spec = routeSpec
+		// it would overwrite any existing values for route.Spec.Host
+		route.Spec.To = routeSpec.To
+		route.Spec.Port = routeSpec.Port
+		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
+		route.Spec.TLS = routeSpec.TLS
+		return nil
+	}
+
+	return route, mutateFn, nil
+}
+
 func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
 	weight := int32(100)
 	route := &routev1.Route{
@@ -658,7 +701,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context,
 	return route, mutateFn, nil
 }
 
-func (r *AgentServiceConfigReconciler) newInsecureIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
+func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
 	weight := int32(100)
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
@@ -677,7 +720,10 @@ func (r *AgentServiceConfigReconciler) newInsecureIPXERoute(ctx context.Context,
 			TargetPort: intstr.FromString(fmt.Sprintf("%s-http", imageServiceName)),
 		},
 		WildcardPolicy: routev1.WildcardPolicyNone,
-		TLS:            &routev1.TLSConfig{InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow},
+		TLS: &routev1.TLSConfig{
+			Termination:                   routev1.TLSTerminationType(routev1.InsecureEdgeTerminationPolicyNone),
+			InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow,
+		},
 	}
 
 	mutateFn := func() error {

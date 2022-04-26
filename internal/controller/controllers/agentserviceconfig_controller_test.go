@@ -439,7 +439,7 @@ var _ = Describe("newImageServiceRoute", func() {
 			found := &routev1.Route{}
 			Expect(ascr.Client.Get(ctx, types.NamespacedName{Name: routeName, Namespace: testNamespace}, found)).ToNot(Succeed())
 
-			AssertReconcileSuccess(ctx, log, ascr.Client, asc, ascr.newInsecureIPXERoute)
+			AssertReconcileSuccess(ctx, log, ascr.Client, asc, ascr.newImageServiceIPXERoute)
 			Expect(ascr.Client.Get(ctx, types.NamespacedName{Name: routeName, Namespace: testNamespace}, found)).To(Succeed())
 			Expect(found.Spec.TLS).To(Equal(&routev1.TLSConfig{InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow}))
 			Expect(found.Spec.Path).To(Equal(imageservice.BootArtifactsPath))
