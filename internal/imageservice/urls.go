@@ -8,17 +8,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-const BootArtifactsPath = "boot-artifacts"
+const BootArtifactsPath = "/boot-artifacts"
 
 func KernelURL(baseURL, version, arch string) (string, error) {
-	return buildURL(baseURL, fmt.Sprintf("/%s/kernel", BootArtifactsPath), true, map[string]string{
+	return buildURL(baseURL, fmt.Sprintf("%s/kernel", BootArtifactsPath), true, map[string]string{
 		"version": version,
 		"arch":    arch,
 	})
 }
 
 func RootFSURL(baseURL, version, arch string) (string, error) {
-	return buildURL(baseURL, fmt.Sprintf("/%s/rootfs", BootArtifactsPath), true, map[string]string{
+	return buildURL(baseURL, fmt.Sprintf("%s/rootfs", BootArtifactsPath), true, map[string]string{
 		"version": version,
 		"arch":    arch,
 	})
