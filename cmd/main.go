@@ -196,6 +196,7 @@ func main() {
 	}
 
 	port := flag.String("port", "8090", "define port that the service will listen to")
+	httpPort := flag.String("http-port", "8091", "define http port that the service will listen to")
 	flag.Parse()
 
 	log.Println("Starting bm service")
@@ -548,12 +549,25 @@ func main() {
 		}
 	}()
 
-	address := fmt.Sprintf(":%s", swag.StringValue(port))
-	if Options.ServeHTTPS {
-		log.Fatal(http.ListenAndServeTLS(address, Options.HTTPSCertFile, Options.HTTPSKeyFile, h))
-	} else {
-		log.Fatal(http.ListenAndServe(address, h))
+	httpsListen := func(port string) {
+		log.Infof("Starting https handler on %s...", port)
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%s", port), Options.HTTPSCertFile, Options.HTTPSKeyFile, nil))
 	}
+
+	httpListen := func(port string) {
+		log.Infof("Starting http handler on %s...", port)
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	}
+
+	if Options.ServeHTTPS {
+		go httpsListen(swag.StringValue(port))
+		if httpPort != nil {
+			go httpListen(swag.StringValue(httpPort))
+		}
+	} else {
+		go httpListen(swag.StringValue(port))
+	}
+	select {}
 }
 
 func generateAPMTransactionName(request *http.Request) string {
