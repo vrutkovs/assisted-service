@@ -1333,6 +1333,12 @@ func (r *AgentServiceConfigReconciler) newAssistedServiceDeployment(ctx context.
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
+		Command: []string{
+			"/assisted-service",
+		},
+		Args: []string{
+			"--http-port", "9091",
+		},
 		EnvFrom: envFrom,
 		Env:     envSecrets,
 		VolumeMounts: []corev1.VolumeMount{
