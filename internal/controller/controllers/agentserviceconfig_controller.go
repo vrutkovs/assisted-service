@@ -674,7 +674,7 @@ func (r *AgentServiceConfigReconciler) newInsecureIPXERoute(ctx context.Context,
 			Weight: &weight,
 		},
 		Port: &routev1.RoutePort{
-			TargetPort: intstr.FromString(imageServiceName),
+			TargetPort: intstr.FromString(fmt.Sprintf("%s-http", imageServiceName)),
 		},
 		WildcardPolicy: routev1.WildcardPolicyNone,
 		TLS:            &routev1.TLSConfig{InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow},
