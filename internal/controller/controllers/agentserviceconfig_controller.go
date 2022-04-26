@@ -1337,7 +1337,7 @@ func (r *AgentServiceConfigReconciler) newAssistedServiceDeployment(ctx context.
 			"/assisted-service",
 		},
 		Args: []string{
-			"--http-port", "9091",
+			"--http-port", "8091",
 		},
 		EnvFrom: envFrom,
 		Env:     envSecrets,
