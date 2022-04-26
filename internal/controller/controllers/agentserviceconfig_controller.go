@@ -488,7 +488,7 @@ func (r *AgentServiceConfigReconciler) newAgentService(ctx context.Context, log 
 		if len(svc.Spec.Ports) == 1 {
 			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
 		}
-		svc.Spec.Ports[1].Name = serviceName
+		svc.Spec.Ports[1].Name = fmt.Sprintf("%s-http", serviceName)
 		svc.Spec.Ports[1].Port = int32(serviceHTTPPort.IntValue())
 		svc.Spec.Ports[1].TargetPort = serviceHTTPPort
 		svc.Spec.Ports[1].Protocol = corev1.ProtocolTCP
@@ -527,7 +527,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceService(ctx context.Contex
 		if len(svc.Spec.Ports) == 1 {
 			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
 		}
-		svc.Spec.Ports[1].Name = imageServiceName
+		svc.Spec.Ports[1].Name = fmt.Sprintf("%s-http", imageServiceName)
 		svc.Spec.Ports[1].Port = int32(imageHTTPHandlerPort.IntValue())
 		svc.Spec.Ports[1].TargetPort = imageHTTPHandlerPort
 		svc.Spec.Ports[1].Protocol = corev1.ProtocolTCP
