@@ -478,16 +478,14 @@ func (r *AgentServiceConfigReconciler) newAgentService(ctx context.Context, log 
 			svc.ObjectMeta.Annotations = make(map[string]string)
 		}
 		svc.ObjectMeta.Annotations[servingCertAnnotation] = serviceName
-		if len(svc.Spec.Ports) == 0 {
+		if len(svc.Spec.Ports) != 2 {
+			svc.Spec.Ports = []corev1.ServicePort{}
 			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
 		}
 		svc.Spec.Ports[0].Name = serviceName
 		svc.Spec.Ports[0].Port = int32(servicePort.IntValue())
 		svc.Spec.Ports[0].TargetPort = servicePort
 		svc.Spec.Ports[0].Protocol = corev1.ProtocolTCP
-		if len(svc.Spec.Ports) == 1 {
-			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
-		}
 		svc.Spec.Ports[1].Name = fmt.Sprintf("%s-http", serviceName)
 		svc.Spec.Ports[1].Port = int32(serviceHTTPPort.IntValue())
 		svc.Spec.Ports[1].TargetPort = serviceHTTPPort
@@ -517,16 +515,14 @@ func (r *AgentServiceConfigReconciler) newImageServiceService(ctx context.Contex
 			svc.ObjectMeta.Annotations = make(map[string]string)
 		}
 		svc.ObjectMeta.Annotations[servingCertAnnotation] = imageServiceName
-		if len(svc.Spec.Ports) == 0 {
+		if len(svc.Spec.Ports) != 2 {
+			svc.Spec.Ports = []corev1.ServicePort{}
 			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
 		}
 		svc.Spec.Ports[0].Name = imageServiceName
 		svc.Spec.Ports[0].Port = int32(imageHandlerPort.IntValue())
 		svc.Spec.Ports[0].TargetPort = imageHandlerPort
 		svc.Spec.Ports[0].Protocol = corev1.ProtocolTCP
-		if len(svc.Spec.Ports) == 1 {
-			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
-		}
 		svc.Spec.Ports[1].Name = fmt.Sprintf("%s-http", imageServiceName)
 		svc.Spec.Ports[1].Port = int32(imageHTTPHandlerPort.IntValue())
 		svc.Spec.Ports[1].TargetPort = imageHTTPHandlerPort
@@ -978,7 +974,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceStatefulSet(ctx context.Co
 				Protocol:      corev1.ProtocolTCP,
 			},
 			{
-				ContainerPort: int32(imageHandlerPort.IntValue()),
+				ContainerPort: int32(imageHTTPHandlerPort.IntValue()),
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
