@@ -638,10 +638,6 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 			TargetPort: intstr.FromString(fmt.Sprintf("%s-http", serviceName)),
 		},
 		WildcardPolicy: routev1.WildcardPolicyNone,
-		TLS: &routev1.TLSConfig{
-			Termination:                   routev1.TLSTerminationType(routev1.InsecureEdgeTerminationPolicyNone),
-			InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow,
-		},
 	}
 
 	mutateFn := func() error {
@@ -720,10 +716,6 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 			TargetPort: intstr.FromString(fmt.Sprintf("%s-http", imageServiceName)),
 		},
 		WildcardPolicy: routev1.WildcardPolicyNone,
-		TLS: &routev1.TLSConfig{
-			Termination:                   routev1.TLSTerminationType(routev1.InsecureEdgeTerminationPolicyNone),
-			InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyAllow,
-		},
 	}
 
 	mutateFn := func() error {
