@@ -92,9 +92,11 @@ const (
 )
 
 var (
-	servicePort      = intstr.Parse("8090")
-	databasePort     = intstr.Parse("5432")
-	imageHandlerPort = intstr.Parse("8080")
+	servicePort          = intstr.Parse("8090")
+	serviceHTTPPort      = intstr.Parse("8091")
+	databasePort         = intstr.Parse("5432")
+	imageHandlerPort     = intstr.Parse("8080")
+	imageHTTPHandlerPort = intstr.Parse("8081")
 )
 
 // AgentServiceConfigReconciler reconciles a AgentServiceConfig object
@@ -483,6 +485,13 @@ func (r *AgentServiceConfigReconciler) newAgentService(ctx context.Context, log 
 		svc.Spec.Ports[0].Port = int32(servicePort.IntValue())
 		svc.Spec.Ports[0].TargetPort = servicePort
 		svc.Spec.Ports[0].Protocol = corev1.ProtocolTCP
+		if len(svc.Spec.Ports) == 1 {
+			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
+		}
+		svc.Spec.Ports[1].Name = serviceName
+		svc.Spec.Ports[1].Port = int32(serviceHTTPPort.IntValue())
+		svc.Spec.Ports[1].TargetPort = serviceHTTPPort
+		svc.Spec.Ports[1].Protocol = corev1.ProtocolTCP
 		svc.Spec.Selector = map[string]string{"app": serviceName}
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		return nil
@@ -515,6 +524,13 @@ func (r *AgentServiceConfigReconciler) newImageServiceService(ctx context.Contex
 		svc.Spec.Ports[0].Port = int32(imageHandlerPort.IntValue())
 		svc.Spec.Ports[0].TargetPort = imageHandlerPort
 		svc.Spec.Ports[0].Protocol = corev1.ProtocolTCP
+		if len(svc.Spec.Ports) == 1 {
+			svc.Spec.Ports = append(svc.Spec.Ports, corev1.ServicePort{})
+		}
+		svc.Spec.Ports[1].Name = imageServiceName
+		svc.Spec.Ports[1].Port = int32(imageHTTPHandlerPort.IntValue())
+		svc.Spec.Ports[1].TargetPort = imageHTTPHandlerPort
+		svc.Spec.Ports[1].Protocol = corev1.ProtocolTCP
 		svc.Spec.Selector = map[string]string{"app": imageServiceName}
 		svc.Spec.Type = corev1.ServiceTypeClusterIP
 		return nil
@@ -961,9 +977,14 @@ func (r *AgentServiceConfigReconciler) newImageServiceStatefulSet(ctx context.Co
 				ContainerPort: int32(imageHandlerPort.IntValue()),
 				Protocol:      corev1.ProtocolTCP,
 			},
+			{
+				ContainerPort: int32(imageHandlerPort.IntValue()),
+				Protocol:      corev1.ProtocolTCP,
+			},
 		},
 		Env: []corev1.EnvVar{
 			{Name: "LISTEN_PORT", Value: imageHandlerPort.String()},
+			{Name: "HTTP_LISTEN_PORT", Value: imageHTTPHandlerPort.String()},
 			{Name: "RHCOS_VERSIONS", Value: r.getOSImages(log, instance)},
 			{Name: "HTTPS_CERT_FILE", Value: "/etc/image-service/certs/tls.crt"},
 			{Name: "HTTPS_KEY_FILE", Value: "/etc/image-service/certs/tls.key"},
@@ -1271,6 +1292,10 @@ func (r *AgentServiceConfigReconciler) newAssistedServiceDeployment(ctx context.
 		Ports: []corev1.ContainerPort{
 			{
 				ContainerPort: int32(servicePort.IntValue()),
+				Protocol:      corev1.ProtocolTCP,
+			},
+			{
+				ContainerPort: int32(serviceHTTPPort.IntValue()),
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},
