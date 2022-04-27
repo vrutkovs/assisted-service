@@ -701,6 +701,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context,
 		// If we update the entire route.Spec with
 		// route.Spec = routeSpec
 		// it would overwrite any existing values for route.Spec.Host
+		route.Spec.Host = routeSpec.Host
 		route.Spec.To = routeSpec.To
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
@@ -754,6 +755,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 		// If we update the entire route.Spec with
 		// route.Spec = routeSpec
 		// it would overwrite any existing values for route.Spec.Host
+		route.Spec.Host = routeSpec.Host
 		route.Spec.To = routeSpec.To
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
