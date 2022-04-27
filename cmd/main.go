@@ -551,12 +551,12 @@ func main() {
 
 	httpsListen := func(port string) {
 		log.Infof("Starting https handler on %s...", port)
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%s", port), Options.HTTPSCertFile, Options.HTTPSKeyFile, nil))
+		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%s", port), Options.HTTPSCertFile, Options.HTTPSKeyFile, h))
 	}
 
 	httpListen := func(port string) {
 		log.Infof("Starting http handler on %s...", port)
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), h))
 	}
 
 	if Options.ServeHTTPS {
