@@ -645,6 +645,7 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 		},
 	}
 	routeSpec := routev1.RouteSpec{
+		Path: "/api/assisted-install/v2",
 		To: routev1.RouteTargetReference{
 			Kind:   "Service",
 			Name:   serviceName,
@@ -664,6 +665,7 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 		// If we update the entire route.Spec with
 		// route.Spec = routeSpec
 		// it would overwrite any existing values for route.Spec.Host
+		route.Spec.Path = routeSpec.Path
 		route.Spec.To = routeSpec.To
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
