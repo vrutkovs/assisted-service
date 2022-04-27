@@ -621,6 +621,18 @@ func (r *AgentServiceConfigReconciler) newAgentRoute(ctx context.Context, log lo
 }
 
 func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
+
+	// Wait for https route to be created first
+	httpsRoute := &routev1.Route{}
+	if err := r.Get(ctx, types.NamespacedName{Name: serviceName, Namespace: r.Namespace}, httpsRoute); err != nil {
+		log.WithError(err).Error("Failed to get https route for agent service")
+		return nil, nil, err
+	}
+	if httpsRoute.Spec.Host == "" {
+		log.Info("Agent https route found, but host not yet set")
+		return nil, nil, nil
+	}
+
 	weight := int32(100)
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
@@ -629,6 +641,7 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 		},
 	}
 	routeSpec := routev1.RouteSpec{
+		Host: httpsRoute.Spec.Host,
 		To: routev1.RouteTargetReference{
 			Kind:   "Service",
 			Name:   serviceName,
@@ -698,6 +711,18 @@ func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context,
 }
 
 func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Context, log logrus.FieldLogger, instance *aiv1beta1.AgentServiceConfig) (client.Object, controllerutil.MutateFn, error) {
+	// Wait for https route to be created first
+	httpsRoute := &routev1.Route{}
+	if err := r.Get(ctx, types.NamespacedName{Name: imageServiceName, Namespace: r.Namespace}, httpsRoute); err != nil {
+		log.WithError(err).Error("Failed to get https route for image service")
+		return nil, nil, err
+	}
+
+	if httpsRoute.Spec.Host == "" {
+		log.Info("Image service https route found, but host not yet set")
+		return nil, nil, nil
+	}
+
 	weight := int32(100)
 	route := &routev1.Route{
 		ObjectMeta: metav1.ObjectMeta{
@@ -706,6 +731,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 		},
 	}
 	routeSpec := routev1.RouteSpec{
+		Host: httpsRoute.Spec.Host,
 		Path: imageservice.BootArtifactsPath,
 		To: routev1.RouteTargetReference{
 			Kind:   "Service",
