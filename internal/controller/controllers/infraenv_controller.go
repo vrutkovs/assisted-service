@@ -531,10 +531,18 @@ func (r *InfraEnvReconciler) setSignedBootArtifactURLs(infraEnv *aiv1beta1.Infra
 	baseURL.Path = path.Join(baseURL.Path, filesURL.Path)
 	baseURL.RawQuery = filesURL.RawQuery
 
-	infraEnv.Status.BootArtifacts.IpxeScriptURL, err = signURL(baseURL.String(), r.AuthType, infraEnvID, gencrypto.InfraEnvKey)
+	ipxeScriptURL, err := signURL(baseURL.String(), r.AuthType, infraEnvID, gencrypto.InfraEnvKey)
 	if err != nil {
 		return err
 	}
+
+	// set status to http version of the URL
+	ipxeScriptURLParsed, err := url.Parse(ipxeScriptURL)
+	if err != nil {
+		return err
+	}
+	ipxeScriptURLParsed.Scheme = "http"
+	infraEnv.Status.BootArtifacts.IpxeScriptURL = ipxeScriptURLParsed.String()
 
 	return nil
 }
