@@ -632,6 +632,7 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 		log.Info("Agent https route found, but host not yet set")
 		return nil, nil, nil
 	}
+	log.Infof("Found agent https route '%s'", httpsRoute.Spec.Host)
 
 	weight := int32(100)
 	route := &routev1.Route{
@@ -722,6 +723,7 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 		log.Info("Image service https route found, but host not yet set")
 		return nil, nil, nil
 	}
+	log.Infof("Found image service https route '%s'", httpsRoute.Spec.Host)
 
 	weight := int32(100)
 	route := &routev1.Route{
