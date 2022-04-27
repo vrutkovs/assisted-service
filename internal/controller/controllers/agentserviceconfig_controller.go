@@ -640,9 +640,11 @@ func (r *AgentServiceConfigReconciler) newAgentIPXERoute(ctx context.Context, lo
 			Name:      fmt.Sprintf("%s-ipxe", serviceName),
 			Namespace: r.Namespace,
 		},
+		Spec: routev1.RouteSpec{
+			Host: httpsRoute.Spec.Host,
+		},
 	}
 	routeSpec := routev1.RouteSpec{
-		Host: httpsRoute.Spec.Host,
 		To: routev1.RouteTargetReference{
 			Kind:   "Service",
 			Name:   serviceName,
@@ -701,7 +703,6 @@ func (r *AgentServiceConfigReconciler) newImageServiceRoute(ctx context.Context,
 		// If we update the entire route.Spec with
 		// route.Spec = routeSpec
 		// it would overwrite any existing values for route.Spec.Host
-		route.Spec.Host = routeSpec.Host
 		route.Spec.To = routeSpec.To
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
@@ -732,6 +733,9 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 			Name:      fmt.Sprintf("%s-ipxe", imageServiceName),
 			Namespace: r.Namespace,
 		},
+		Spec: routev1.RouteSpec{
+			Host: httpsRoute.Spec.Host,
+		},
 	}
 	routeSpec := routev1.RouteSpec{
 		Host: httpsRoute.Spec.Host,
@@ -755,7 +759,6 @@ func (r *AgentServiceConfigReconciler) newImageServiceIPXERoute(ctx context.Cont
 		// If we update the entire route.Spec with
 		// route.Spec = routeSpec
 		// it would overwrite any existing values for route.Spec.Host
-		route.Spec.Host = routeSpec.Host
 		route.Spec.To = routeSpec.To
 		route.Spec.Port = routeSpec.Port
 		route.Spec.WildcardPolicy = routeSpec.WildcardPolicy
