@@ -5641,6 +5641,7 @@ definitions:
     type: string
     enum:
       - baremetal
+      - nutanix
       - vsphere
       - ovirt
       - none

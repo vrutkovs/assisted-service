@@ -8,6 +8,7 @@ import (
 	"github.com/openshift/assisted-service/internal/installcfg"
 	"github.com/openshift/assisted-service/internal/provider"
 	"github.com/openshift/assisted-service/internal/provider/baremetal"
+	"github.com/openshift/assisted-service/internal/provider/nutanix"
 	"github.com/openshift/assisted-service/internal/provider/ovirt"
 	"github.com/openshift/assisted-service/internal/provider/vsphere"
 	"github.com/openshift/assisted-service/internal/usage"
@@ -54,17 +55,20 @@ type Registry interface {
 
 type registry struct {
 	providers map[string]provider.Provider
+	log       logrus.FieldLogger
 }
 
 // NewProviderRegistry creates a new copy of a Registry.
-func NewProviderRegistry() ProviderRegistry {
+func NewProviderRegistry(log logrus.FieldLogger) ProviderRegistry {
 	return &registry{
 		providers: map[string]provider.Provider{},
+		log:       log,
 	}
 }
 
 func (r *registry) Register(provider provider.Provider) {
 	r.providers[string(provider.Name())] = provider
+	r.log.Debugf("Registered provider %s", string(provider.Name()))
 }
 
 func (r *registry) Get(name string) (provider.Provider, error) {
@@ -127,9 +131,11 @@ func (r *registry) GetSupportedProvidersByHosts(hosts []*models.Host) ([]models.
 				p.Name(), err)
 		}
 		if supported {
+			r.log.Debugf("Adding platform %s to supported", p.Name())
 			clusterSupportedPlatforms = append(clusterSupportedPlatforms, p.Name())
 		}
 	}
+	r.log.Debugf("Supported platforms %v", clusterSupportedPlatforms)
 	return clusterSupportedPlatforms, nil
 }
 
@@ -158,8 +164,9 @@ func (r *registry) PostCreateManifestsHook(cluster *common.Cluster, envVars *[]s
 }
 
 func InitProviderRegistry(log logrus.FieldLogger) ProviderRegistry {
-	providerRegistry := NewProviderRegistry()
+	providerRegistry := NewProviderRegistry(log)
 	providerRegistry.Register(ovirt.NewOvirtProvider(log, nil))
+	providerRegistry.Register(nutanix.NewNutanixProvider(log))
 	providerRegistry.Register(vsphere.NewVsphereProvider(log))
 	providerRegistry.Register(baremetal.NewBaremetalProvider(log))
 	return providerRegistry

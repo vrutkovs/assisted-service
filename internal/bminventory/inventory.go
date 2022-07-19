@@ -47,6 +47,7 @@ import (
 	"github.com/openshift/assisted-service/internal/metrics"
 	"github.com/openshift/assisted-service/internal/network"
 	"github.com/openshift/assisted-service/internal/operators"
+	"github.com/openshift/assisted-service/internal/provider"
 	"github.com/openshift/assisted-service/internal/provider/registry"
 	"github.com/openshift/assisted-service/internal/usage"
 	"github.com/openshift/assisted-service/internal/versions"
@@ -2171,11 +2172,12 @@ func (b *bareMetalInventory) updateNetworkTables(db *gorm.DB, cluster *common.Cl
 
 func (b *bareMetalInventory) updateProviderParams(params installer.V2UpdateClusterParams, updates map[string]interface{}, usages map[string]models.Usage) error {
 	if params.ClusterUpdateParams.Platform != nil && common.PlatformTypeValue(params.ClusterUpdateParams.Platform.Type) != "" {
-		err := b.providerRegistry.SetPlatformUsages(
-			common.PlatformTypeValue(params.ClusterUpdateParams.Platform.Type), usages, b.usageApi)
+		platformType := common.PlatformTypeValue(params.ClusterUpdateParams.Platform.Type)
+		err := b.providerRegistry.SetPlatformUsages(platformType, usages, b.usageApi)
 		if err != nil {
 			return fmt.Errorf("failed setting platform usages, error is: %w", err)
 		}
+		updates[provider.DbFieldPlatformType] = platformType
 	}
 	return nil
 }

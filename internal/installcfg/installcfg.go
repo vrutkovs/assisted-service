@@ -13,6 +13,7 @@ type Platform struct {
 	None      *PlatformNone                   `yaml:"none,omitempty"`
 	Ovirt     *OvirtInstallConfigPlatform     `yaml:"ovirt,omitempty"`
 	Vsphere   *VsphereInstallConfigPlatform   `yaml:"vsphere"`
+	Nutanix   *NutanixInstallConfigPlatform   `yaml:"nutanix"`
 }
 
 type Host struct {
@@ -41,6 +42,38 @@ type VsphereInstallConfigPlatform struct {
 	Cluster          string          `yaml:"cluster"`
 	APIVIP           string          `yaml:"apiVIP"`
 	IngressVIP       string          `yaml:"ingressVIP"`
+}
+
+type NutanixInstallConfigPlatform struct {
+	ID            int                   `yaml:"-"`
+	APIVIP        string                `yaml:"apiVIP,omitempty"`
+	IngressVIP    string                `yaml:"ingressVIP,omitempty"`
+	PrismCentral  NutanixPrismCentral   `yaml:"prismCentral"`
+	PrismElements []NutanixPrismElement `yaml:"prismElements"`
+	SubnetUUIDs   []strfmt.UUID         `yaml:"subnetUUIDs"`
+}
+
+type NutanixPrismCentral struct {
+	ID                             int             `yaml:"-"`
+	NutanixInstallConfigPlatformID int             `yaml:"-"`
+	Endpoint                       NutanixEndpoint `yaml:"endpoint"`
+	Username                       string          `yaml:"username"`
+	Password                       strfmt.Password `yaml:"password"`
+}
+
+type NutanixEndpoint struct {
+	ID                    int    `yaml:"-"`
+	NutanixPrismCentralID int    `yaml:"-"`
+	Address               string `yaml:"address"`
+	Port                  int32  `yaml:"port"`
+}
+
+type NutanixPrismElement struct {
+	ID                             int             `yaml:"-"`
+	NutanixInstallConfigPlatformID int             `yaml:"-"`
+	Endpoint                       NutanixEndpoint `yaml:"endpoint"`
+	UUID                           strfmt.UUID     `yaml:"uuid"`
+	Name                           string          `yaml:"name"`
 }
 
 // OvirtInstallConfigPlatform represents the required parameters

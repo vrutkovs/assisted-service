@@ -8619,6 +8619,7 @@ func init() {
       "type": "string",
       "enum": [
         "baremetal",
+        "nutanix",
         "vsphere",
         "ovirt",
         "none"
@@ -17946,6 +17947,7 @@ func init() {
       "type": "string",
       "enum": [
         "baremetal",
+        "nutanix",
         "vsphere",
         "ovirt",
         "none"

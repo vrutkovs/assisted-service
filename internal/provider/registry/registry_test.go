@@ -26,6 +26,7 @@ import (
 	ovirtclient "github.com/ovirt/go-ovirt-client"
 	ovirtclientlog "github.com/ovirt/go-ovirt-client-log/v2"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -122,6 +123,23 @@ spec:
             name: worker-user-data
 status:
   replicas: 0
+`
+
+const expectedNutanixInstallConfig = `apiVIP: 192.168.10.10
+ingressVIP: 192.168.10.11
+prismCentral:
+  endpoint:
+    address: 1.1.1.1
+    port: 8080
+  username: username_placeholder
+  password: password_placeholder
+prismElements:
+- endpoint:
+    address: 1.1.1.1
+    port: 8080
+  uuid: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+subnetUUIDs:
+- yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy
 `
 
 var _ = Describe("Test GetSupportedProvidersByHosts", func() {
@@ -374,7 +392,26 @@ var _ = Describe("Test AddPlatformToInstallConfig", func() {
 			cluster.Platform = createOvirtPlatformParams()
 			err := providerRegistry.AddPlatformToInstallConfig(models.PlatformTypeOvirt, &cfg, &cluster)
 			Expect(err).To(BeNil())
+
 			Expect(cfg.Platform.Ovirt).NotTo(BeNil())
+		})
+	})
+	Context("nutanix", func() {
+		It("without cluster params", func() {
+			cfg := getInstallerConfigBaremetal()
+			hosts := make([]*models.Host, 0)
+			hosts = append(hosts, createHost(true, models.HostStatusKnown, getNutanixInventoryStr("hostname0", "bootMode", true, false)))
+			hosts = append(hosts, createHost(true, models.HostStatusKnown, getNutanixInventoryStr("hostname1", "bootMode", true, false)))
+			hosts = append(hosts, createHost(true, models.HostStatusKnown, getNutanixInventoryStr("hostname2", "bootMode", true, false)))
+			hosts = append(hosts, createHost(false, models.HostStatusKnown, getNutanixInventoryStr("hostname3", "bootMode", true, false)))
+			hosts = append(hosts, createHost(false, models.HostStatusKnown, getNutanixInventoryStr("hostname4", "bootMode", true, false)))
+			cluster := createClusterFromHosts(hosts)
+			err := providerRegistry.AddPlatformToInstallConfig(models.PlatformTypeNutanix, &cfg, &cluster)
+			Expect(err).To(BeNil())
+			Expect(cfg.Platform.Nutanix).ToNot(BeNil())
+			installConfigByte, err := yaml.Marshal(cfg.Platform.Nutanix)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(installConfigByte)).To(Equal(expectedNutanixInstallConfig))
 		})
 	})
 })
@@ -445,7 +482,7 @@ var _ = Describe("Test Hooks", func() {
 		ovirtTemplateID := ovirtHelper.GetBlankTemplateID()
 		ovirtOptVMParams := ovirtclient.CreateVMParams()
 
-		providerRegistry := NewProviderRegistry()
+		providerRegistry := NewProviderRegistry(logrus.New())
 		ovirtProvider := ovirt.NewOvirtProvider(logrus.New(), ovirtClient)
 		providerRegistry.Register(ovirtProvider)
 
@@ -606,6 +643,18 @@ func getBaremetalInventoryStr(hostname, bootMode string, ipv4, ipv6 bool) string
 		ProductName:  "KVM",
 		SerialNumber: "",
 		Virtual:      false,
+	}
+	ret, _ := json.Marshal(&inventory)
+	return string(ret)
+}
+
+func getNutanixInventoryStr(hostname, bootMode string, ipv4, ipv6 bool) string {
+	inventory := getInventory(hostname, bootMode, ipv4, ipv6)
+	inventory.SystemVendor = &models.SystemVendor{
+		Manufacturer: "Nutanix",
+		ProductName:  "AHV",
+		SerialNumber: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		Virtual:      true,
 	}
 	ret, _ := json.Marshal(&inventory)
 	return string(ret)
