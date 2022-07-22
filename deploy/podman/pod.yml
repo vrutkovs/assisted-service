@@ -13,7 +13,7 @@ spec:
     envFrom:
     - configMapRef:
         name: config
-  - image: quay.io/edge-infrastructure/assisted-installer-ui:latest
+  - image: quay.io/vrutkovs/ai:ui-cc98064
     name: ui
     ports:
     - hostPort: 8080
@@ -27,7 +27,7 @@ spec:
     envFrom:
     - configMapRef:
         name: config
-  - image: quay.io/edge-infrastructure/assisted-service:latest
+  - image: quay.io/vrutkovs/ai:service-8287f8513
     name: service
     ports:
     - hostPort: 8090
