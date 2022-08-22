@@ -21,12 +21,12 @@ require (
 	github.com/filanov/stateswitch v0.0.0-20200714113403-51a42a34c604
 	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
-	github.com/go-openapi/errors v0.20.1
-	github.com/go-openapi/loads v0.20.2
+	github.com/go-openapi/errors v0.20.2
+	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.19.24
-	github.com/go-openapi/spec v0.20.4
-	github.com/go-openapi/strfmt v0.20.3
-	github.com/go-openapi/swag v0.19.15
+	github.com/go-openapi/spec v0.20.6
+	github.com/go-openapi/strfmt v0.21.3
+	github.com/go-openapi/swag v0.21.1
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang-collections/go-datastructures v0.0.0-20150211160725-59788d5eb259
 	github.com/golang/mock v1.5.0
@@ -60,13 +60,13 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/slok/go-http-metrics v0.8.0
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
 	github.com/thedevsaddam/retry v0.0.0-20200324223450-9769a859cc6d
 	github.com/thoas/go-funk v0.8.0
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	go.elastic.co/apm/module/apmhttp v1.11.0
 	go.elastic.co/apm/module/apmlogrus v1.11.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	golang.org/x/tools v0.1.5 // indirect
